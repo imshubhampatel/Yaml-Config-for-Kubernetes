@@ -1,0 +1,50 @@
+version: '3'
+
+networks:
+  sonarqube-network:
+
+volumes:
+  postgresql_data:
+  sonarqube_data:
+  jenkins_home:
+
+services:
+  postgresql:
+    image: bitnami/postgresql:latest
+    container_name: postgresql
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - POSTGRESQL_USERNAME=bn_sonarqube
+      - POSTGRESQL_PASSWORD=bitnami
+      - POSTGRESQL_DATABASE=bitnami_sonarqube
+    networks:
+      - sonarqube-network
+    volumes:
+      - postgresql_data:/bitnami/postgresql
+
+  sonarqube:
+    image: bitnami/sonarqube:latest
+    container_name: sonarqube
+    ports:
+      - 9000:9000
+      - 8443:8443
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - SONARQUBE_DATABASE_USER=bn_sonarqube
+      - SONARQUBE_DATABASE_PASSWORD=bitnami
+      - SONARQUBE_DATABASE_NAME=bitnami_sonarqube
+    networks:
+      - sonarqube-network
+    volumes:
+      - sonarqube_data:/bitnami/sonarqube
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
